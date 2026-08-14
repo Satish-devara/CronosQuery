@@ -28,30 +28,27 @@ git push origin main
 4. Click **Create Database**.
 5. Once created, copy the **Internal Database URL** (e.g., `postgres://user:password@internal-host:5432/chronos_db`). You will use this for the backend service configuration.
 
-### 2. Redis Cache (Render)
-1. Go to your Render Dashboard, click **New +**, and select **Redis**.
+### 2. Key Value Cache (Render Valkey)
+On Render, Redis has been rebranded and upgraded to **Key Value** (which runs Valkey, a fully open-source, 100% compatible drop-in replacement for Redis).
+1. Go to your Render Dashboard, click **New +**, and select **Key Value**.
 2. Configure the cache:
    * **Name**: `chronos-redis`
    * **Region**: Match the region of your database.
    * **Instance Type**: **Free**.
-3. Click **Create Redis**.
-4. Once created, copy the **Internal Redis URL** (e.g., `redis://red-xxxxxxxxxx:6379`). Write down the host (`red-xxxxxxxxxx`) and port (`6379`) separately.
+3. Click **Create Key Value**.
+4. Once created, copy the **Internal Connection URL** (e.g., `redis://red-xxxxxxxxxx:6379` or `valkey://red-xxxxxxxxxx:6379`). Write down the host (`red-xxxxxxxxxx`) and port (`6379`) separately.
 
-### 3. Kafka Broker (Upstash)
-Since Render doesn't offer free Apache Kafka, we use **Upstash**, a serverless Kafka provider with a generous free tier (10k messages/day).
-1. Sign up/log in at [Upstash Console](https://console.upstash.com/).
-2. Click **Kafka** in the navigation bar and select **Create Cluster**.
-3. Configure your cluster:
-   * **Name**: `chronos-kafka`
-   * **Region**: Match your database/web service region if possible (or closest equivalent).
-4. Click **Create**.
-5. Once created, go to the **Topics** tab and click **Create Topic**:
-   * **Topic Name**: `record-updates`
-   * **Partitions**: `1`
-6. Go back to the **Details** tab, scroll to the **Connection Details** section, and copy the following configurations:
-   * **Bootstrap Server** (e.g., `xxxx-xxxx-xxxx.upstash.io:9092`)
-   * **Username** (provided in the Java config tab)
-   * **Password** (provided in the Java config tab)
+### 3. Kafka Broker (Aiven)
+Since Render doesn't offer free Apache Kafka, we use **Aiven**, which offers a completely free ($0/month) managed Apache Kafka cluster tier requiring **no credit card**.
+1. Sign up/log in at [Aiven Console](https://console.aiven.io/).
+2. Click **Create Service** and select **Apache Kafka**.
+3. Choose the **Free** tier option.
+4. Set the **Service Name** to `chronos-kafka` and select your cloud/region (e.g. AWS us-east-1).
+5. Click **Create Free Service**.
+6. Once the service starts:
+   * Go to the **Topics** tab, click **Add Topic**, name it `record-updates`, and click **Create topic**.
+   * Go to the **Overview** tab, scroll to **Connection information**, and copy the **Service URI** (e.g., `chronos-kafka-xxxx.aivencloud.com:xxxxx`). This is your Bootstrap Server address.
+   * Go to the **Users** tab (or check the Connection information panel) to copy the default service username (`avnadmin`) and generate/copy the password. Aiven uses **SCRAM-SHA-256** by default for connection authentication.
 
 ---
 
@@ -69,15 +66,15 @@ Since Render doesn't offer free Apache Kafka, we use **Upstash**, a serverless K
 
 | Key | Value | Description |
 |---|---|---|
-| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://<INTERNAL_DB_HOST>:5432/chronos_db` | Replace with host from Render Postgres connection string (prefix with `jdbc:`) |
-| `SPRING_DATASOURCE_USERNAME` | `postgres` (or your db user) | Database username |
-| `SPRING_DATASOURCE_PASSWORD` | `<DATABASE_PASSWORD>` | Database password |
-| `REDIS_HOST` | `<INTERNAL_REDIS_HOST>` | Host name of your Render Redis instance (without `redis://` or `:6379`) |
-| `REDIS_PORT` | `6379` | Port of your Render Redis instance |
-| `KAFKA_BOOTSTRAP_SERVERS` | `<BOOTSTRAP_SERVER>` | Upstash Kafka Bootstrap Server |
-| `KAFKA_SECURITY_PROTOCOL` | `SASL_SSL` | Enable secure protocol for Upstash |
-| `KAFKA_SASL_MECHANISM` | `PLAIN` | Set SASL mechanism |
-| `KAFKA_SASL_JAAS_CONFIG` | `org.apache.kafka.common.security.plain.PlainLoginModule required username="<UPSTASH_USERNAME>" password="<UPSTASH_PASSWORD>";` | Substitute your Upstash Kafka username and password |
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://<HOST>/<DATABASE>` | E.g. `jdbc:postgresql://dpg-xxxxxxxxxx-a/chronos_db_va4p` (Do NOT embed user/password here) |
+| `SPRING_DATASOURCE_USERNAME` | `<USER>` | E.g. `chronos_db_va4p_user` |
+| `SPRING_DATASOURCE_PASSWORD` | `<PASSWORD>` | E.g. `Li7MiITkLdHkbq6qQYbBCwJG6EkeRfU4` |
+| `REDIS_HOST` | `<INTERNAL_REDIS_HOST>` | Host name of your Render Key Value instance (without `redis://` or `:6379`) |
+| `REDIS_PORT` | `6379` | Port of your Render Key Value instance |
+| `KAFKA_BOOTSTRAP_SERVERS` | `<BOOTSTRAP_SERVER>` | Aiven Kafka Service URI / Bootstrap Server (from Connection Info) |
+| `KAFKA_SECURITY_PROTOCOL` | `SASL_SSL` | Enable secure protocol for Aiven |
+| `KAFKA_SASL_MECHANISM` | `SCRAM-SHA-256` | Aiven uses SCRAM-SHA-256 |
+| `KAFKA_SASL_JAAS_CONFIG` | `org.apache.kafka.common.security.scram.ScramLoginModule required username="avnadmin" password="<AIVEN_PASSWORD>";` | Substitute your Aiven Kafka password |
 | `ALLOWED_ORIGINS` | `https://<YOUR-FRONTEND-APP>.vercel.app` | We will update this with your Vercel URL once the frontend is deployed |
 
 5. Click **Create Web Service**. 
