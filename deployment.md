@@ -46,6 +46,9 @@ Since Render doesn't offer free Apache Kafka, we use **Aiven**, which offers a c
 4. Set the **Service Name** to `chronos-kafka` and select your cloud/region (e.g. AWS us-east-1).
 5. Click **Create Free Service**.
 6. Once the service starts:
+   * In the Aiven console sidebar, click **Service settings**.
+   * Scroll down to the **Advanced configuration** section, click **Configure**, then click **Add configuration options**.
+   * Search for `letsencrypt_sasl`, select it, and set its value to **Enabled** (or true). Save the configuration. This secures your SASL endpoint with a public Let's Encrypt certificate that Spring Boot automatically trusts, resolving the "SSL handshake failed" error.
    * Go to the **Topics** tab, click **Add Topic**, name it `record-updates`, and click **Create topic**.
    * Go to the **Overview** tab, scroll to **Connection information**, and copy the **Service URI** (e.g., `chronos-kafka-xxxx.aivencloud.com:xxxxx`). This is your Bootstrap Server address.
    * Go to the **Users** tab (or check the Connection information panel) to copy the default service username (`avnadmin`) and generate/copy the password. Aiven uses **SCRAM-SHA-256** by default for connection authentication.
