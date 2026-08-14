@@ -56,8 +56,9 @@ function App() {
 
   const activeAtSlider = getActiveRecordAtSliderVal();
 
-  const API_BASE = 'http://localhost:8080/api/records';
-  const AUTH_BASE = 'http://localhost:8080/api/auth';
+  const BACKEND_URL = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
+  const API_BASE = `${BACKEND_URL}/api/records`;
+  const AUTH_BASE = `${BACKEND_URL}/api/auth`;
 
   // Initialize start/end query timestamps to recent window (30m ago to 30m ahead)
   useEffect(() => {
@@ -76,7 +77,7 @@ function App() {
 
   // Listen to Server-Sent Events (SSE) from the backend
   useEffect(() => {
-    const eventSource = new EventSource('http://localhost:8080/api/records/events');
+    const eventSource = new EventSource(`${BACKEND_URL}/api/records/events`);
 
     eventSource.addEventListener('connected', (event) => {
       addLog('system', event.data);
