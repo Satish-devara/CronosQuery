@@ -78,6 +78,7 @@ Since Render doesn't offer free Apache Kafka, we use **Aiven**, which offers a c
 | `KAFKA_SECURITY_PROTOCOL` | `SASL_SSL` | Enable secure protocol for Aiven |
 | `KAFKA_SASL_MECHANISM` | `SCRAM-SHA-256` | Aiven uses SCRAM-SHA-256 |
 | `KAFKA_SASL_JAAS_CONFIG` | `org.apache.kafka.common.security.scram.ScramLoginModule required username="avnadmin" password="<AIVEN_PASSWORD>";` | Substitute your Aiven Kafka password |
+| `KAFKA_SSL_ENGINE_FACTORY_CLASS` | `com.example.ChronosQuery.security.InsecureSslEngineFactory` | Set custom factory to bypass self-signed SSL certificate checks on Aiven free plan |
 | `ALLOWED_ORIGINS` | `https://<YOUR-FRONTEND-APP>.vercel.app` | We will update this with your Vercel URL once the frontend is deployed |
 
 5. Click **Create Web Service**. 

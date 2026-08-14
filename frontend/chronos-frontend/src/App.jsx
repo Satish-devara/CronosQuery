@@ -177,15 +177,26 @@ function App() {
   const triggerHistoryQuery = async (queryKey) => {
     if (!queryKey) return;
     try {
-      const formattedStart = startTime.length === 16 ? `${startTime}:00` : startTime;
-      const formattedEnd = endTime.length === 16 ? `${endTime}:00` : endTime;
+      // Convert browser's local time inputs to UTC for backend database queries
+      const convertLocalToUtc = (localStr) => {
+        if (!localStr) return '';
+        const normalized = localStr.length === 16 ? `${localStr}:00` : localStr;
+        try {
+          return new Date(normalized).toISOString().slice(0, 19);
+        } catch (e) {
+          return normalized;
+        }
+      };
+
+      const utcStart = convertLocalToUtc(startTime);
+      const utcEnd = convertLocalToUtc(endTime);
 
       const response = await axios.get(`${API_BASE}/timerange`, {
         ...getAuthHeader(),
         params: {
           key: queryKey,
-          startTime: formattedStart,
-          endTime: formattedEnd
+          startTime: utcStart,
+          endTime: utcEnd
         }
       });
 
@@ -201,7 +212,9 @@ function App() {
   const formatDateTime = (isoStr) => {
     if (!isoStr) return 'Active (Present)';
     try {
-      const date = new Date(isoStr);
+      // Force interpretation as UTC by appending 'Z' if not present
+      const utcStr = isoStr.endsWith('Z') ? isoStr : `${isoStr}Z`;
+      const date = new Date(utcStr);
       return date.toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
